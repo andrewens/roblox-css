@@ -1,0 +1,16 @@
+{
+  "name": "roblox-css",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$path": "src/replicated-storage"
+    },
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src/server-script-service"
+    }
+  }
+}
