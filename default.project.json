@@ -5,12 +5,14 @@
 
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "$path": "src/replicated-storage"
+      "$path": "src/replicated-storage",
+      "$ignoreUnknownInstances": true
     },
 
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "$path": "src/server-script-service"
+      "$path": "src/server-script-service",
+      "$ignoreUnknownInstances": true
     }
   }
 }
