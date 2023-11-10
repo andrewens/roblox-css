@@ -7,22 +7,52 @@
 local Maid = require(script:FindFirstChild("Maid"))
 
 -- public
-local function mount(ParentContainer, StyleSheets)
+local function mount(ParentContainer, StyleSheet)
 	--[[
         @param: Instance ParentContainer
-            - All descendants of this will be styled
-        @param: Instance | { function | Instance } StyleSheets
-            - Traverse descendants of Instances, taking any module scripts that return functions
-        @post: All existing descendants of ParentContainer are styled according to StyleSheets
-        @post: When new descendants are added to ParentContainer, they will be styled according to StyleSheets
-        @return: <Maid> DismountMaid
-            - When cleaned/destroyed, descendants of ParentContainer are no longer styled
+            - All descendants of this will be styled, including itself
+        @param: table StyleSheet { className --> { propertyName --> styledValue } }
+            - These properties will be applied to relevant classes
+        @post: All existing descendants of ParentContainer are styled according to StyleSheet
+        @post: When new descendants are added to ParentContainer, they will be styled according to StyleSheet
+        @return: any dismountHandle
+            - When passed into RobloxCSS.dismount(), descendants of ParentContainer are no longer styled
     ]]
 
 	-- input validation
 	assert(typeof(ParentContainer) == "Instance")
-	assert(typeof(StyleSheets) == "table")
+	assert(typeof(StyleSheet) == "table")
+	for className, classProperties in StyleSheet do
+		local s, RBXInstance, msg = pcall(Instance.new, className)
+		if not s then
+			error("'" .. className .. "' isn't a valid Instance ClassName")
+		end
 
+		for propertyName, value in classProperties do
+			if not typeof(propertyName) == "string" then
+				error(
+					className
+						.. "["
+						.. tostring(propertyName)
+						.. "] doesn't work because "
+						.. tostring(propertyName)
+						.. " is a "
+						.. typeof(propertyName)
+						.. " when it should be a string"
+				)
+			end
+			s, msg = pcall(function()
+				RBXInstance[propertyName] = value
+			end)
+			if not s then
+				error(
+					className .. "." .. propertyName .. " = " .. tostring(value) .. " doesn't work: " .. tostring(msg)
+				)
+			end
+		end
+	end
+
+	--[[
 	-- define a master stylesheet
 	local MASTER_STYLESHEET = {} -- className --> { property --> value }
 	local styleSaveInterface = setmetatable({}, {
@@ -96,12 +126,13 @@ local function mount(ParentContainer, StyleSheets)
 			)
 		end
 	end
+--]]
 
 	-- apply styles to ParentContainer & its descendants
 	local DismountMaid = Maid()
 	local function applyStyles(RBXInstance)
-		if MASTER_STYLESHEET[RBXInstance.ClassName] then
-			for propertyName, value in MASTER_STYLESHEET[RBXInstance.ClassName] do
+		if StyleSheet[RBXInstance.ClassName] then
+			for propertyName, value in StyleSheet[RBXInstance.ClassName] do
 				RBXInstance[propertyName] = value
 			end
 		end
@@ -121,7 +152,8 @@ local function mount(ParentContainer, StyleSheets)
 end
 local function dismount(DismountMaid)
 	--[[
-        @param: the thing that mount() returns
+        @param: any dismountHandle
+			- the thing that mount() returns
         @post: styles are no longer applied to the ParentContainer that was originally mounted
     ]]
 	DismountMaid:destroy()
