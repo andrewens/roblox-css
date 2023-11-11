@@ -5,28 +5,91 @@
 
 -- dependency
 local Maid = require(script:FindFirstChild("Maid"))
+local CONFIG = require(script:FindFirstChild("config"))
+
+local CLASS_ATTRIBUTE_NAME = CONFIG.CLASS_ATTRIBUTE_NAME
+local CLASS_SEPARATOR_SYMBOL = CONFIG.CLASS_SEPARATOR_SYMBOL
+local CUSTOM_CLASS_SYMBOL = CONFIG.CUSTOM_CLASS_SYMBOL
 
 -- public
-local function mount(ParentContainer, StyleSheet)
+local function mount(ParentContainer, StyleSheets, CustomProperties)
 	--[[
         @param: Instance ParentContainer
             - All descendants of this will be styled, including itself
-        @param: table StyleSheet { className --> { propertyName --> styledValue } }
+        @param: table StyleSheets
+			- { string rbxClassName --> { propertyName --> styledValue } }
+			- { string _customClassName --> { propertyName --> styledValue } }
+			- { [int i] --> function(RBXClass, CustomClass): nil }
+			- { [int i] --> ModuleScript: function(RBXClass, CustomClass): nil }
             - These properties will be applied to relevant classes
+		@param: table CustomProperties
+			- { string propertyName --> function(...): ? }
+			- { [int i] --> ModuleScript: ? }
         @post: All existing descendants of ParentContainer are styled according to StyleSheet
         @post: When new descendants are added to ParentContainer, they will be styled according to StyleSheet
         @return: any dismountHandle
             - When passed into RobloxCSS.dismount(), descendants of ParentContainer are no longer styled
     ]]
 
+	--[[
+		1. Compile master style sheet (no longer is the parameter)
+			- RBX Classes
+				- Validate the class
+			- Custom classes
+			- functions
+			- Modulescripts / instances
+		2. Define apply style in terms of master style sheet
+		3. Apply style to the parent container and its descendants and new descendants
+		4. return dismountHandle (and applyStyle?)
+	]]
+
 	-- input validation
 	assert(typeof(ParentContainer) == "Instance")
-	assert(typeof(StyleSheet) == "table")
-	for className, classProperties in StyleSheet do
+	assert(typeof(StyleSheets) == "table")
+	assert(CustomProperties == nil or typeof(CustomProperties) == "table")
+
+	-- extract stylesheets
+	local ROBLOX_MASTER_STYLESHEET = {} -- RBXInstanceClassName --> { property --> value }
+	local CUSTOM_MASTER_STYLESHEET = {} -- CustomAttributeClassName --> { property --> value }
+
+	for className, classProperties in StyleSheets do
+		-- className should be a string
+		if not typeof(className) == "string" then
+			continue
+		end
+
+		-- classProperties should be a table
+		if typeof(classProperties) ~= "table" then
+			error("Stylesheet[" .. tostring(className) .. "] = " .. tostring(classProperties) .. ", which isn't a table")
+		end
+
+		-- save custom attribute classes
+		if string.sub(className, 1, 1) == CUSTOM_CLASS_SYMBOL then
+			className = string.sub(className, 2, -1)
+			local CLASS_STYLESHEET = CUSTOM_MASTER_STYLESHEET[className] or {}
+			CUSTOM_MASTER_STYLESHEET[className] = CLASS_STYLESHEET
+
+			for propertyName, value in classProperties do
+				-- Roblox Instance properties never have lowercase first letter, so we can do some input validation here
+				local firstChar = string.sub(propertyName, 1, 1)
+				if string.upper(firstChar) ~= firstChar then
+					error("Stylesheet[" .. tostring(className) .. "][" .. tostring(propertyName) .. "] is invalid because the first letter of '" .. propertyName .. "' is lowercase")
+				end
+
+				CLASS_STYLESHEET[propertyName] = value
+			end
+
+			continue
+		end
+
+		-- save roblox instance classes
 		local s, RBXInstance, msg = pcall(Instance.new, className)
 		if not s then
 			error("'" .. className .. "' isn't a valid Instance ClassName")
 		end
+
+		local INSTANCE_STYLESHEET = ROBLOX_MASTER_STYLESHEET[className] or {}
+		ROBLOX_MASTER_STYLESHEET[className] = INSTANCE_STYLESHEET
 
 		for propertyName, value in classProperties do
 			if not typeof(propertyName) == "string" then
@@ -49,9 +112,14 @@ local function mount(ParentContainer, StyleSheet)
 					className .. "." .. propertyName .. " = " .. tostring(value) .. " doesn't work: " .. tostring(msg)
 				)
 			end
-		end
-	end
 
+			-- save to master stylesheet
+			INSTANCE_STYLESHEET[propertyName] = value
+		end
+
+		RBXInstance:Destroy()
+	end
+	
 	--[[
 	-- define a master stylesheet
 	local MASTER_STYLESHEET = {} -- className --> { property --> value }
@@ -131,9 +199,22 @@ local function mount(ParentContainer, StyleSheet)
 	-- apply styles to ParentContainer & its descendants
 	local DismountMaid = Maid()
 	local function applyStyles(RBXInstance)
-		if StyleSheet[RBXInstance.ClassName] then
-			for propertyName, value in StyleSheet[RBXInstance.ClassName] do
+		-- apply properties from RBX class
+		if ROBLOX_MASTER_STYLESHEET[RBXInstance.ClassName] then
+			for propertyName, value in ROBLOX_MASTER_STYLESHEET[RBXInstance.ClassName] do
 				RBXInstance[propertyName] = value
+			end
+		end
+
+		-- apply custom properties
+		local customClassNames = RBXInstance:GetAttribute(CLASS_ATTRIBUTE_NAME)
+		if customClassNames then
+			for _, className in string.split(customClassNames, CLASS_SEPARATOR_SYMBOL) do
+				if CUSTOM_MASTER_STYLESHEET[className] then
+					for propertyName, value in CUSTOM_MASTER_STYLESHEET[className] do
+						RBXInstance[propertyName] = value
+					end
+				end
 			end
 		end
 	end

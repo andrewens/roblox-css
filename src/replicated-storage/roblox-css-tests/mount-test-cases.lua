@@ -270,7 +270,7 @@ return {
         _CustomClassA = { -- (underscores = custom class name, set as an Attribute)
             BackgroundColor3 = Color3.new(1, 0, 0),
         },
-        CustomClassB = {
+        _CustomClassB = {
             BackgroundColor3 = Color3.new(0, 1, 1),
         },
     },
@@ -345,5 +345,60 @@ return {
         },
         _class = "CustomClassA",
         BackgroundColor3 = Color3.new(1, 0, 0), -- Custom classes override RBX classes
+    },
+
+    -- Test #11: Overlapping custom classes
+    {
+        ClassName = "Frame",
+        Children = {
+            {
+                ClassName = "TextLabel",
+                Children = {
+                    {
+                        ClassName = "Frame",
+                    }
+                },
+                _class = "CustomClassB CustomClassA",
+            }
+        },
+        _class = "CustomClassA CustomClassB",
+    },
+    {
+        -- custom classes
+        _CustomClassA = {
+            BackgroundColor3 = Color3.new(1, 0, 0),
+            Transparency = 0.5,
+        },
+        _CustomClassB = {
+            BackgroundColor3 = Color3.new(0, 1, 1),
+        },
+
+        -- RBX classes
+        Frame = {
+            BackgroundColor3 = Color3.new(1, 1, 0),
+        },
+    },
+    "<NIL>",
+    {
+        ClassName = "Frame",
+        Children = {
+            {
+                ClassName = "TextLabel",
+                Children = {
+                    {
+                        ClassName = "Frame",
+                        BackgroundColor3 = Color3.new(1, 1, 0),
+                    }
+                },
+                _class = "CustomClassB CustomClassA",
+
+                Transparency = 0.5,
+                BackgroundColor3 = Color3.new(1, 0, 0), -- the last custom class takes priority
+            }
+        },
+        _class = "CustomClassA CustomClassB",
+
+        Transparency = 0.5,
+        BackgroundColor3 = Color3.new(0, 1, 1), -- the last custom class takes priority
     },
 }
