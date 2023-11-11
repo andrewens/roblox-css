@@ -401,4 +401,83 @@ return {
         Transparency = 0.5,
         BackgroundColor3 = Color3.new(0, 1, 1), -- the last custom class takes priority
     },
+
+    -- Test #12: Custom properties
+    {
+        ClassName = "Frame",
+        Children = {
+            {
+                ClassName = "TextLabel",
+                Children = {
+                    {
+                        ClassName = "Frame",
+                    }
+                },
+                _class = "CustomClassB",
+            }
+        },
+        _class = "CustomClassA",
+    },
+    {
+        -- custom classes
+        _CustomClassA = {
+            BackgroundColor3 = "red",
+            Transparency = "half",
+        },
+        _CustomClassB = {
+            BackgroundColor3 = Color3.new(0, 1, 1),
+        },
+
+        -- RBX classes
+        Frame = {
+            BackgroundColor3 = "yellow",
+        },
+    },
+    {
+        BackgroundColor3 = function(RBXInstance, property, value)
+            if value == "red" then
+                value = Color3.new(1, 0, 0)
+            elseif value == "yellow" then
+                value = Color3.new(1, 1, 0)
+            end
+            RBXInstance[property] = value
+        end,
+        Transparency = function(RBXInstance, property, value)
+            if value == "half" then
+                value = 0.5
+            end
+            RBXInstance[property] = value
+        end
+    },
+    {
+        ClassName = "Frame",
+        Children = {
+            {
+                ClassName = "TextLabel",
+                Children = {
+                    {
+                        ClassName = "Frame",
+                        BackgroundColor3 = Color3.new(1, 1, 0),
+                    }
+                },
+                _class = "CustomClassB",
+
+                Transparency = 0.5,
+                BackgroundColor3 = Color3.new(1, 0, 0),
+            }
+        },
+        _class = "CustomClassA",
+
+        Transparency = 0.5,
+        BackgroundColor3 = Color3.new(0, 1, 1),
+    },
+
+    --[[
+        Custom property
+
+        property --> function(RBXInstance, propertyName, value)
+
+        * Overrides normal properties
+        * Applies to both RBXInstances and custom classes
+    ]]
 }
