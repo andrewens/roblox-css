@@ -1,7 +1,3 @@
-local function defaultIsEqual(v1, v2)
-	return v1 == v2
-end
-
 -- to support more types, simply add a new type and comparison function
 -- it is always assumed that typeof(v1) == typeof(v2)
 local IS_EQUAL = { -- typeof --> isEqual(v1, v2)
@@ -25,12 +21,9 @@ local IS_EQUAL = { -- typeof --> isEqual(v1, v2)
         return v1.R == v2.R and v1.G == v2.G and v1.B == v2.B
     end,
 }
-setmetatable(IS_EQUAL, {
-	-- use default == for unsupported types
-	__index = function(_, unsupportedType)
-		return defaultIsEqual
-	end,
-})
+local function defaultIsEqual(v1, v2)
+	return v1 == v2
+end
 
 return function(v1, v2)
 	--[[
@@ -45,5 +38,5 @@ return function(v1, v2)
 	end
 
 	-- this defaults to the == operator if typeof(v1) isn't defined in the IS_EQUAL table
-	return IS_EQUAL[typeof(v1)](v1, v2)
+	return (IS_EQUAL[typeof(v1)] or defaultIsEqual)(v1, v2)
 end
