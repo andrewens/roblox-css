@@ -4,7 +4,6 @@ return function()
 	local Tests = script.Parent
 
 	local InstanceJSON = require(Tests:FindFirstChild("InstanceJSON"))
-	local isEqual = require(Tests:FindFirstChild("isEqual"))
 	local MOUNT_TEST_CASES = require(Tests:FindFirstChild("mount-test-cases"))
 	local Table = require(Tests:FindFirstChild("Table"))
 	local RobloxCSS = require(ReplicatedStorage:FindFirstChild("roblox-css"))
