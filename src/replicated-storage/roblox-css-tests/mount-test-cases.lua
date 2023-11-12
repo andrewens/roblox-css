@@ -4,9 +4,8 @@ return {
 
         1. 1st argument to mount() -- ParentContainer
             --> Formatted as JSON -- gets turned into real ROBLOX Instances
-        2. 2nd argument to mount() -- RBXStyleSheet
-        3. 3rd argument to mount() -- CustomProperties
-        4. Expected result
+        2. 2nd argument to mount() -- StyleSheet
+        3. Expected result
             --> Formatted as JSON -- in the same way as #1
             --> Put "<ERROR>" if mount() should throw an error for these inputs
 
@@ -42,7 +41,6 @@ return {
             ZIndex = 10,
         },
     },
-    "<NIL>",
     {
         ClassName = "Frame",
         Children = {
@@ -84,7 +82,6 @@ return {
             Size = UDim2.new(0, 100, 0, 200),
         },
     },
-    "<NIL>",
     "<ERROR>", 
 
     -- Test #3: Bad input to RBXStyleSheet
@@ -102,7 +99,6 @@ return {
         }
     },
     "BadInput",
-    "<NIL>",
     "<ERROR>",
 
     -- Test #4: Empty RBXStylesheet is OK
@@ -120,7 +116,6 @@ return {
         }
     },
     {},
-    "<NIL>",
     {
         ClassName = "Frame",
         Children = {
@@ -157,7 +152,6 @@ return {
             BackgroundColor3 = Color3.new(1, 0, 1),
         },
     },
-    "<NIL>",
     {
         ClassName = "Frame",
         Children = {
@@ -202,7 +196,6 @@ return {
             Size = UDim2.new(0, 100, 0, 200),
         },
     },
-    "<NIL>",
     "<ERROR>",
 
     -- Test #7: Pass a bad value to a valid property name
@@ -229,7 +222,6 @@ return {
             Size = UDim2.new(0, 100, 0, 200),
         },
     },
-    "<NIL>",
     "<ERROR>",
 
     -- Test #8: Passing no stylesheets is not OK
@@ -246,7 +238,6 @@ return {
             }
         }
     },
-    "<NIL>",
     "<NIL>",
     "<ERROR>",
 
@@ -274,7 +265,6 @@ return {
             BackgroundColor3 = Color3.new(0, 1, 1),
         },
     },
-    "<NIL>",
     {
         ClassName = "Frame",
         Children = {
@@ -327,7 +317,6 @@ return {
             BackgroundColor3 = Color3.new(0, 1, 0),
         }
     },
-    "<NIL>",
     {
         ClassName = "Frame",
         Children = {
@@ -378,7 +367,6 @@ return {
             BackgroundColor3 = Color3.new(1, 1, 0),
         },
     },
-    "<NIL>",
     {
         ClassName = "Frame",
         Children = {
@@ -419,21 +407,7 @@ return {
         _class = "CustomClassA",
     },
     {
-        -- custom classes
-        _CustomClassA = {
-            BackgroundColor3 = "red",
-            BackgroundTransparency = "half",
-        },
-        _CustomClassB = {
-            BackgroundColor3 = Color3.new(0, 1, 1),
-        },
-
-        -- RBX classes
-        Frame = {
-            BackgroundColor3 = "yellow",
-        },
-    },
-    {
+        -- custom properties
         BackgroundColor3 = function(RBXInstance, property, value)
             if value == "red" then
                 value = Color3.new(1, 0, 0)
@@ -447,7 +421,21 @@ return {
                 value = 0.5
             end
             RBXInstance[property] = value
-        end
+        end,
+
+        -- custom classes
+        _CustomClassA = {
+            BackgroundColor3 = "red",
+            BackgroundTransparency = "half",
+        },
+        _CustomClassB = {
+            BackgroundColor3 = Color3.new(0, 1, 1),
+        },
+
+        -- RBX classes
+        Frame = {
+            BackgroundColor3 = "yellow",
+        },
     },
     {
         ClassName = "Frame",
@@ -470,15 +458,4 @@ return {
         BackgroundTransparency = 0.5,
         BackgroundColor3 = Color3.new(1, 0, 0),
     },
-
-    --[[
-        TODO -- fix this bug
-        
-        Custom property
-
-        property --> function(RBXInstance, propertyName, value)
-
-        * Overrides normal properties
-        * Applies to both RBXInstances and custom classes
-    ]]
 }

@@ -10,13 +10,12 @@ return function()
 
 	-- test that RobloxCSS.mount updates properties of ParentContainer's descendants
 	-- as specified by the provided stylesheet, and stops after calling RobloxCSS.dismount
-	for i = 1, #MOUNT_TEST_CASES, 4 do
+	for i = 1, #MOUNT_TEST_CASES, 3 do
 		-- read file of test cases
 		local parentContainerJSON = MOUNT_TEST_CASES[i]
 		local styleSheet = MOUNT_TEST_CASES[i + 1]
-		local customProperties = MOUNT_TEST_CASES[i + 2]
-		local expectedResult = MOUNT_TEST_CASES[i + 3]
-		local testNumber = (i + 3) / 4
+		local expectedResult = MOUNT_TEST_CASES[i + 2]
+		local testNumber = (i + 2) / 3
 		testNumber = (if testNumber < 10 then "0" else "") .. tostring(testNumber)
 
 		-- support macros
@@ -25,9 +24,6 @@ return function()
 		end
 		if styleSheet == "<NIL>" then
 			styleSheet = nil
-		end
-		if customProperties == "<NIL>" then
-			customProperties = nil
 		end
 		if expectedResult == "<NIL>" then
 			expectedResult = nil
@@ -42,7 +38,7 @@ return function()
 			end
 
 			-- invoke mount() method
-			local s, output = pcall(RobloxCSS.mount, ParentContainer, styleSheet, customProperties)
+			local s, output = pcall(RobloxCSS.mount, ParentContainer, styleSheet)
 
 			-- catch both unexpected errors & incorrect successes
 			if s == shouldThrowError then
