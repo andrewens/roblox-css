@@ -42,7 +42,11 @@ return function()
 
 			-- catch both unexpected errors & incorrect successes
 			if s == shouldThrowError then
-				error("RobloxCSS.mount failed Test #" .. testNumber .. "\n" .. Table.toString(output))
+				if s then
+					error("RobloxCSS.mount failed Test #" .. testNumber .. ": failed to throw error for bad input")
+				else
+					error("RobloxCSS.mount failed Test #" .. testNumber .. " with exception: " .. tostring(output))
+				end
 			end
 
 			-- if it's supposed to error, and it did, then we're done testing (RETURNS)

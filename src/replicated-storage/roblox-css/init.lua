@@ -36,19 +36,7 @@ local function mount(ParentContainer, StyleSheet)
             - When passed into RobloxCSS.dismount(), descendants of ParentContainer are no longer styled
     ]]
 
-	--[[
-		1. Compile master style sheet (no longer is the parameter)
-			- RBX Classes
-				- Validate the class
-			- Custom classes
-			- functions
-			- Modulescripts / instances
-		2. Define apply style in terms of master style sheet
-		3. Apply style to the parent container and its descendants and new descendants
-		4. return dismountHandle (and applyStyle?)
-	]]
-
-	-- input validation
+	-- basic input validation
 	assert(typeof(ParentContainer) == "Instance")
 	assert(typeof(StyleSheet) == "table")
 
@@ -86,31 +74,93 @@ local function mount(ParentContainer, StyleSheet)
 		end
 	end
 
-	-- extract stylesheet
+	-- interface for saving to master stylesheet
+	local function extractRbxClass(className, classProperties)
+		assert(typeof(className) == "string")
+		assert(typeof(classProperties) == "table")
+		ROBLOX_CLASSES[className] = classProperties
+	end
+	local function extractCustomClass(className, classProperties)
+		assert(typeof(className) == "string")
+		assert(typeof(classProperties) == "table")
+		CUSTOM_CLASSES[className] = classProperties
+	end
+	local function extractCustomProperty(propertyName, callback)
+		assert(typeof(propertyName) == "string")
+		assert(typeof(callback) == "function")
+		CUSTOM_PROPERTIES[propertyName] = callback
+	end
+
+	-- module interface: .rcss module --> master stylesheet
+	-- i agree that it's overcomplicated but it allows the syntax to look like real CSS :^)
+	local RbxClassInterface = setmetatable({}, {
+		__index = function(self, className)
+			return function(classProperties)
+				extractRbxClass(className, classProperties)
+			end
+		end,
+		__newindex = function(self, key, value)
+			error("Don't use an equal sign to define RBXClass." .. tostring(key))
+		end,
+	})
+	local CustomClassInterface = setmetatable({}, {
+		__index = function(self, className)
+			return function(classProperties)
+				extractCustomClass(className, classProperties)
+			end
+		end,
+		__newindex = function(self, key, value)
+			error("Don't use an equal sign to define CustomClass." .. tostring(key))
+		end,
+	})
+	local CustomPropertyInterface = setmetatable({}, {
+		__index = function(self, propertyName)
+			return function(callback)
+				extractCustomProperty(propertyName, callback)
+			end
+		end,
+		__newindex = function(self, key, value)
+			error("Don't use an equal sign to define rcss CustomProperty[\"" .. tostring(key) .. '"]')
+		end,
+	})
+
+	-- extract stylesheet modules
+	for i, rcssModule in ipairs(StyleSheet) do
+		-- ModuleScripts/Instances aren't supported yet (CONTINUES)
+		if typeof(rcssModule) ~= "function" then
+			continue
+		end
+
+		-- extract stylesheet from rcss module
+		local s, msg = pcall(rcssModule, RbxClassInterface, CustomClassInterface, CustomPropertyInterface)
+		if not s then
+			error("rcss module function #" .. tostring(i) .. " failed with exception: " .. msg)
+		end
+	end
+
+	-- extract default stylesheet
 	for className, classProperties in StyleSheet do
-		-- .rcss modules aren't supported yet (CONTINUES)
+		-- we already extracted .rcss modules (CONTINUES)
 		if typeof(className) ~= "string" then
 			continue
 		end
 
 		-- support custom properties (CONTINUES)
 		if typeof(classProperties) == "function" then
-			local propertyName, callback = className, classProperties
-			CUSTOM_PROPERTIES[propertyName] = callback
+			-- className == propertyName; classProperties == callback
+			extractCustomProperty(className, classProperties)
 			continue
 		end
 
 		-- support custom classes (CONTINUES)
 		if string.sub(className, 1, string.len(CUSTOM_CLASS_SYMBOL)) == CUSTOM_CLASS_SYMBOL then
-			assert(typeof(classProperties) == "table")
 			local customClassName = string.sub(className, string.len(CUSTOM_CLASS_SYMBOL) + 1, -1)
-			CUSTOM_CLASSES[customClassName] = classProperties
+			extractCustomClass(customClassName, classProperties)
 			continue
 		end
 
 		-- support Roblox Instance classes
-		assert(typeof(classProperties) == "table")
-		ROBLOX_CLASSES[className] = classProperties
+		extractRbxClass(className, classProperties)
 	end
 
 	-- verify that ROBLOX classes won't cause errors when styles are actually applied
@@ -122,7 +172,12 @@ local function mount(ParentContainer, StyleSheet)
 
 		local s2, msg = pcall(applyStyles, RBXInstance)
 		if not s2 then
-			error("StyleSheet for ROBLOX Class '" .. tostring(className) .. "' is formatted incorrectly: " .. tostring(msg))
+			error(
+				"StyleSheet for ROBLOX Class '"
+					.. tostring(className)
+					.. "' is formatted incorrectly: "
+					.. tostring(msg)
+			)
 		end
 
 		RBXInstance:Destroy()
