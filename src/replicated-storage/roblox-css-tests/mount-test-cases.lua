@@ -33,7 +33,7 @@ return {
             TextColor3 = Color3.fromRGB(100, 200, 255),
             AnchorPoint = Vector2.new(0.5, 0.5),
             Position = UDim2.new(0.5, 0, 0.5, 0),
-            Transparency = 0.5,
+            BackgroundTransparency = 0.5,
             Size = UDim2.new(1, -5, 1, -10),
         },
         Frame = {
@@ -62,7 +62,7 @@ return {
                 TextColor3 = Color3.fromRGB(100, 200, 255),
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
-                Transparency = 0.5,
+                BackgroundTransparency = 0.5,
                 Size = UDim2.new(1, -5, 1, -10),
             }
         },
@@ -367,7 +367,7 @@ return {
         -- custom classes
         _CustomClassA = {
             BackgroundColor3 = Color3.new(1, 0, 0),
-            Transparency = 0.5,
+            BackgroundTransparency = 0.5,
         },
         _CustomClassB = {
             BackgroundColor3 = Color3.new(0, 1, 1),
@@ -392,13 +392,13 @@ return {
                 },
                 _class = "CustomClassB CustomClassA",
 
-                Transparency = 0.5,
+                BackgroundTransparency = 0.5,
                 BackgroundColor3 = Color3.new(1, 0, 0), -- the last custom class takes priority
             }
         },
         _class = "CustomClassA CustomClassB",
 
-        Transparency = 0.5,
+        BackgroundTransparency = 0.5,
         BackgroundColor3 = Color3.new(0, 1, 1), -- the last custom class takes priority
     },
 
@@ -422,7 +422,7 @@ return {
         -- custom classes
         _CustomClassA = {
             BackgroundColor3 = "red",
-            Transparency = "half",
+            BackgroundTransparency = "half",
         },
         _CustomClassB = {
             BackgroundColor3 = Color3.new(0, 1, 1),
@@ -442,7 +442,7 @@ return {
             end
             RBXInstance[property] = value
         end,
-        Transparency = function(RBXInstance, property, value)
+        BackgroundTransparency = function(RBXInstance, property, value)
             if value == "half" then
                 value = 0.5
             end
@@ -462,17 +462,18 @@ return {
                 },
                 _class = "CustomClassB",
 
-                Transparency = 0.5,
-                BackgroundColor3 = Color3.new(1, 0, 0),
+                BackgroundColor3 = Color3.new(0, 1, 1),
             }
         },
         _class = "CustomClassA",
 
-        Transparency = 0.5,
-        BackgroundColor3 = Color3.new(0, 1, 1),
+        BackgroundTransparency = 0.5,
+        BackgroundColor3 = Color3.new(1, 0, 0),
     },
 
     --[[
+        TODO -- fix this bug
+        
         Custom property
 
         property --> function(RBXInstance, propertyName, value)

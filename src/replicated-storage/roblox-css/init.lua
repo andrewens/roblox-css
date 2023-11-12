@@ -48,6 +48,28 @@ local function mount(ParentContainer, StyleSheets, CustomProperties)
 	assert(typeof(StyleSheets) == "table")
 	assert(CustomProperties == nil or typeof(CustomProperties) == "table")
 
+	-- extract custom properties
+	local CUSTOM_PROPERTIES = {} -- propertyName --> function(RBXInstance, property, value)
+	if CustomProperties then
+		for property, callback in CustomProperties do
+			if typeof(property) ~= "string" then
+				error()
+			end
+			if typeof(callback) ~= "function" then
+				error()
+			end
+
+			CUSTOM_PROPERTIES[property] = callback
+		end
+	end
+	local function applyProperty(RBXInstance, propertyName, value)
+		if CUSTOM_PROPERTIES[propertyName] then
+			CUSTOM_PROPERTIES[propertyName](RBXInstance, propertyName, value)
+			return
+		end
+		RBXInstance[propertyName] = value
+	end
+
 	-- extract stylesheets
 	local ROBLOX_MASTER_STYLESHEET = {} -- RBXInstanceClassName --> { property --> value }
 	local CUSTOM_MASTER_STYLESHEET = {} -- CustomAttributeClassName --> { property --> value }
@@ -104,9 +126,7 @@ local function mount(ParentContainer, StyleSheets, CustomProperties)
 						.. " when it should be a string"
 				)
 			end
-			s, msg = pcall(function()
-				RBXInstance[propertyName] = value
-			end)
+			s, msg = pcall(applyProperty, RBXInstance, propertyName, value)
 			if not s then
 				error(
 					className .. "." .. propertyName .. " = " .. tostring(value) .. " doesn't work: " .. tostring(msg)
@@ -202,7 +222,7 @@ local function mount(ParentContainer, StyleSheets, CustomProperties)
 		-- apply properties from RBX class
 		if ROBLOX_MASTER_STYLESHEET[RBXInstance.ClassName] then
 			for propertyName, value in ROBLOX_MASTER_STYLESHEET[RBXInstance.ClassName] do
-				RBXInstance[propertyName] = value
+				applyProperty(RBXInstance, propertyName, value)
 			end
 		end
 
@@ -212,7 +232,7 @@ local function mount(ParentContainer, StyleSheets, CustomProperties)
 			for _, className in string.split(customClassNames, CLASS_SEPARATOR_SYMBOL) do
 				if CUSTOM_MASTER_STYLESHEET[className] then
 					for propertyName, value in CUSTOM_MASTER_STYLESHEET[className] do
-						RBXInstance[propertyName] = value
+						applyProperty(RBXInstance, propertyName, value)
 					end
 				end
 			end
