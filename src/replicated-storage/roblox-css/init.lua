@@ -84,6 +84,7 @@ local function mount(ParentContainer, StyleSheet)
 	local function extractCustomProperty(propertyName, callback)
 		assert(typeof(propertyName) == "string")
 		assert(typeof(callback) == "function")
+		assert(CUSTOM_PROPERTIES[propertyName] == nil) -- custom properties can only be defined once
 		CUSTOM_PROPERTIES[propertyName] = callback
 	end
 

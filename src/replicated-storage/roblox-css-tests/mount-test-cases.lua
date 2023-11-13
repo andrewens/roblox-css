@@ -728,4 +728,51 @@ return {
 		BackgroundTransparency = 0.5,
 		BackgroundColor3 = Color3.new(1, 0, 0),
 	},
+
+	-- Test #18: Custom Properties can only be defined once
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+					},
+				},
+				_class = "CustomClassB",
+			},
+		},
+		_class = "CustomClassA",
+	},
+	{
+		Instance17b, -- this module defines some custom properties
+		Instance17b -- so passing it twice should throw an error
+	},
+	"<ERROR>",
+
+	-- Test #19: Custom Properties can only be defined once (different inputs)
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+					},
+				},
+				_class = "CustomClassB",
+			},
+		},
+		_class = "CustomClassA",
+	},
+	{
+		Instance17b, -- this module defines CustomProperty.BackgroundColor3
+		BackgroundColor3 = function(RBXInstance, propertyName, value)
+			-- this is a second definition of CustomProperty.BackgroundColor3 which should throw
+			return Color3.new(1, 1, 1)
+		end,
+	},
+	"<ERROR>",
 }
