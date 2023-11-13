@@ -74,12 +74,24 @@ local function mount(ParentContainer, StyleSheet)
 	local function extractRbxClass(className, classProperties)
 		assert(typeof(className) == "string")
 		assert(typeof(classProperties) == "table")
-		ROBLOX_CLASSES[className] = classProperties
+
+		if ROBLOX_CLASSES[className] == nil then
+			ROBLOX_CLASSES[className] = {}
+		end
+		for propertyName, value in classProperties do
+			ROBLOX_CLASSES[className][propertyName] = value
+		end
 	end
 	local function extractCustomClass(className, classProperties)
 		assert(typeof(className) == "string")
 		assert(typeof(classProperties) == "table")
-		CUSTOM_CLASSES[className] = classProperties
+
+		if CUSTOM_CLASSES[className] == nil then
+			CUSTOM_CLASSES[className] = {}
+		end
+		for propertyName, value in classProperties do
+			CUSTOM_CLASSES[className][propertyName] = value
+		end
 	end
 	local function extractCustomProperty(propertyName, callback)
 		assert(typeof(propertyName) == "string")

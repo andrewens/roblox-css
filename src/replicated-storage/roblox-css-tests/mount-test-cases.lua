@@ -775,4 +775,99 @@ return {
 		end,
 	},
 	"<ERROR>",
+
+	-- Test #20: RbxClasses can have overlapping definitions
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+					},
+				},
+				_class = "CustomClassB",
+			},
+		},
+		_class = "CustomClassA",
+	},
+	{
+		function(RbxClass, CustomClass, CustomProperty)
+			RbxClass.Frame {
+				BackgroundColor3 = Color3.new(1, 1, 0),
+			}
+		end,
+		function(RbxClass, CustomClass, CustomProperty)
+			RbxClass.Frame {
+				BackgroundTransparency = 0.5,
+			}
+		end
+	},
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+						BackgroundColor3 = Color3.new(1, 1, 0),
+						BackgroundTransparency = 0.5,
+					},
+				},
+			},
+		},
+
+		BackgroundTransparency = 0.5,
+		BackgroundColor3 = Color3.new(1, 1, 0),
+	},
+
+	-- Test #21: CustomClasses can have overlapping definitions
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+					},
+				},
+				_class = "CustomClassA",
+			},
+		},
+		_class = "CustomClassA",
+	},
+	{
+		function(RbxClass, CustomClass, CustomProperty)
+			CustomClass.CustomClassA {
+				BackgroundColor3 = Color3.new(1, 1, 0),
+			}
+		end,
+		function(RbxClass, CustomClass, CustomProperty)
+			CustomClass.CustomClassA {
+				BackgroundTransparency = 0.5,
+			}
+		end
+	},
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+					},
+				},
+
+				BackgroundColor3 = Color3.new(1, 1, 0),
+				BackgroundTransparency = 0.5,
+			},
+		},
+
+		BackgroundTransparency = 0.5,
+		BackgroundColor3 = Color3.new(1, 1, 0),
+	},
 }
