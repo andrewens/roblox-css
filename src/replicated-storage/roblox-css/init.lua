@@ -248,9 +248,22 @@ local function dismount(DismountMaid)
     ]]
 	DismountMaid:destroy()
 end
+local function setClass(RBXInstance, fullClassName)
+	--[[
+		@param: Instance RBXInstance
+		@param: string | nil fullClassName
+		@post: RBXInstance's custom class name(s) is/are updated
+		@post: DOES NOT UPDATE STYLES OF INSTANCE! Styles are only updated upon setting the parent
+	]]
+
+	assert(typeof(RBXInstance) == "Instance")
+	assert(typeof(fullClassName) == "string" or fullClassName == nil)
+	RBXInstance:SetAttribute(CLASS_ATTRIBUTE_NAME, fullClassName)
+end
 
 -- expose roblox-css public API
 return {
 	mount = mount,
 	dismount = dismount,
+	setClass = setClass,
 }
