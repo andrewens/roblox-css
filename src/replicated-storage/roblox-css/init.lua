@@ -1,8 +1,3 @@
---[[
--- Roblox CSS main
--- Expose mount() and dismount(), the main methods of the library
---]]
-
 -- dependency
 local Maid = require(script:FindFirstChild("Maid"))
 local CONFIG = require(script:FindFirstChild("config"))
@@ -10,6 +5,7 @@ local CONFIG = require(script:FindFirstChild("config"))
 local CLASS_ATTRIBUTE_NAME = CONFIG.CLASS_ATTRIBUTE_NAME
 local CLASS_SEPARATOR_SYMBOL = CONFIG.CLASS_SEPARATOR_SYMBOL
 local CUSTOM_CLASS_SYMBOL = CONFIG.CUSTOM_CLASS_SYMBOL
+local STYLESHEET_FILE_EXTENSION = CONFIG.STYLESHEET_FILE_EXTENSION
 
 -- public
 local function mount(ParentContainer, StyleSheet)
@@ -126,16 +122,52 @@ local function mount(ParentContainer, StyleSheet)
 
 	-- extract stylesheet modules
 	for i, rcssModule in ipairs(StyleSheet) do
-		-- ModuleScripts/Instances aren't supported yet (CONTINUES)
-		if typeof(rcssModule) ~= "function" then
+		-- extract stylesheet from rcss module (CONTINUES)
+		if typeof(rcssModule) == "function" then
+			local s, msg = pcall(rcssModule, RbxClassInterface, CustomClassInterface, CustomPropertyInterface)
+			if not s then
+				error("rcss module function #" .. tostring(i) .. " failed with exception: " .. msg)
+			end
 			continue
 		end
 
-		-- extract stylesheet from rcss module
-		local s, msg = pcall(rcssModule, RbxClassInterface, CustomClassInterface, CustomPropertyInterface)
-		if not s then
-			error("rcss module function #" .. tostring(i) .. " failed with exception: " .. msg)
+		-- extract stylesheets from instances (CONTINUES)
+		if typeof(rcssModule) == "Instance" then
+			local Descendants = rcssModule:GetDescendants()
+			table.insert(Descendants, rcssModule)
+
+			for _, RBXInstance in Descendants do
+				if RBXInstance:IsA("ModuleScript") then
+					-- must end in .rcss or whatever it's set in CONFIG
+					local name = RBXInstance.Name
+					if
+						string.sub(name, string.len(name) - string.len(STYLESHEET_FILE_EXTENSION) + 1, -1)
+						~= STYLESHEET_FILE_EXTENSION
+					then
+						continue
+					end
+
+					-- must return a function
+					local stylesheetModule = require(RBXInstance)
+					if typeof(stylesheetModule) ~= "function" then
+						error("Stylesheet " .. tostring(name) .. " must return a function")
+					end
+
+					-- extract styles
+					stylesheetModule(RbxClassInterface, CustomClassInterface, CustomPropertyInterface)
+				end
+			end
+			continue
 		end
+
+		-- bad input
+		error(
+			"StyleSheet["
+				.. tostring(i)
+				.. "] = "
+				.. tostring(rcssModule)
+				.. " is invalid; Object must be a function or an Instance"
+		)
 	end
 
 	-- extract default stylesheet

@@ -1,3 +1,9 @@
+-- I was SO close to defining module scripts 100% with InstanceJSON...
+-- But I don't have permission to write the Source of ModuleScripts T_T
+local TestCaseInstances = script.Parent:FindFirstChild("test-case-instances")
+local Instance17a = assert(TestCaseInstances:FindFirstChild("test-17a"))
+local Instance17b = assert(TestCaseInstances:FindFirstChild("test-17b.rcss"))
+
 return {
 	--[[
         Format:
@@ -680,4 +686,46 @@ return {
 		end,
 	},
 	"<ERROR>",
+
+	-- Test #17: Stylesheets defined as nested ModuleScripts
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+					},
+				},
+				_class = "CustomClassB",
+			},
+		},
+		_class = "CustomClassA",
+	},
+	{
+		Instance17a,
+		Instance17b
+	},
+	{
+		ClassName = "Frame",
+		Children = {
+			{
+				ClassName = "TextLabel",
+				Children = {
+					{
+						ClassName = "Frame",
+						BackgroundColor3 = Color3.new(1, 1, 0),
+					},
+				},
+				_class = "CustomClassB",
+
+				BackgroundColor3 = Color3.new(0, 1, 1),
+			},
+		},
+		_class = "CustomClassA",
+
+		BackgroundTransparency = 0.5,
+		BackgroundColor3 = Color3.new(1, 0, 0),
+	},
 }
